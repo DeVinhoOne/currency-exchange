@@ -1,12 +1,11 @@
 package org.example.currencyexchange.model.entity;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -18,8 +17,8 @@ public class Account {
     private Long id;
     private String firstName;
     private String lastName;
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Balance> balances = new HashSet<>();
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Balance> balances = new ArrayList<>();
 
     public void addBalance(final Balance balance) {
         if (balance == null) {

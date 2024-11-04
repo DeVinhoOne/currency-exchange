@@ -1,5 +1,6 @@
 package org.example.currencyexchange.mapper;
 
+import org.example.currencyexchange.model.dto.AccountDetailsResponse;
 import org.example.currencyexchange.model.entity.Account;
 import org.example.currencyexchange.model.entity.Balance;
 import org.example.currencyexchange.model.dto.AccountCreateRequest;
@@ -15,9 +16,11 @@ import java.util.Currency;
 public interface AccountMapper {
 
     @Mapping(target = "balances", ignore = true)
-    Account map(final AccountCreateRequest request);
+    Account mapToAccount(final AccountCreateRequest request);
 
-    AccountCreateResponse map(final Account account);
+    AccountCreateResponse mapToAccountCreateResponse(final Account account);
+
+    AccountDetailsResponse mapToAccountDetailsResponse(final Account account);
 
     @AfterMapping
     default void setBalances(final AccountCreateRequest request, @MappingTarget final Account account) {

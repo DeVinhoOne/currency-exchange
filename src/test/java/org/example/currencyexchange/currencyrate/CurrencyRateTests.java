@@ -18,9 +18,9 @@ public class CurrencyRateTests {
         var response = service.fetchRate("USD");
 
         //Then
-        Assertions.assertNotNull(response.buy());
-        Assertions.assertNotNull(response.sell());
-        Assertions.assertNotNull(response.currencyCode());
-        Assertions.assertNotNull(response.date());
+        Assertions.assertNotNull(response.getBuy());
+        Assertions.assertNotNull(response.getSell());
+        Assertions.assertNotNull(response.getCurrencyCode());
+        Assertions.assertNotNull(response.getDate());
     }
 }
