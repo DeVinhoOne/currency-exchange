@@ -12,8 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.math.BigDecimal;
 import java.util.Currency;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class CurrencyExchangeTests {
@@ -26,9 +25,9 @@ class CurrencyExchangeTests {
     @Test
     void shouldConvertFromPLNtoUSD() {
         //Given
-        createTestAccount();
+        var accountId = createTestAccount();
         var request = new CurrencyExchangeRequest(
-                1L,
+                accountId,
                 new CurrencyRequest("PLN"),
                 new CurrencyRequest("USD"),
                 new BigDecimal("650.99")
@@ -47,9 +46,9 @@ class CurrencyExchangeTests {
     @Test
     void shouldConvertFromUSDtoPLN() {
         //Given
-        createTestAccount();
+        var accountId = createTestAccount();
         var requestToUSD = new CurrencyExchangeRequest(
-                1L,
+                accountId,
                 new CurrencyRequest("PLN"),
                 new CurrencyRequest("USD"),
                 new BigDecimal("650.99")
@@ -73,17 +72,12 @@ class CurrencyExchangeTests {
         assertNotNull(response.getTimestamp());
     }
 
-    private void createTestAccount() {
-        var request = new AccountCreateRequest("Tomasz", "Nowak", new BigDecimal("2000.00"));
-        accountService.createAccount(request);
-    }
-
     @Test
     void shouldSubtractCorrectAmountAfterConversion() {
         //Given
-        createTestAccount();
+        var accountId = createTestAccount();
         var request = new CurrencyExchangeRequest(
-                1L,
+                accountId,
                 new CurrencyRequest("PLN"),
                 new CurrencyRequest("USD"),
                 new BigDecimal("650.11")
@@ -97,4 +91,28 @@ class CurrencyExchangeTests {
         //Then
         assertEquals(new BigDecimal("1349.89"), sourceBalanceData.get().amount());
     }
+
+    private Long createTestAccount() {
+        var request = new AccountCreateRequest("Tomasz", "Nowak", new BigDecimal("2000.00"));
+        return accountService.createAccount(request).id();
+    }
+
+    @Test
+    void shouldOpenNewUSDBalanceAfterFirstExchange() {
+        var accountId = createTestAccount();
+        var request = new CurrencyExchangeRequest(
+                accountId,
+                new CurrencyRequest("PLN"),
+                new CurrencyRequest("USD"),
+                new BigDecimal("100.55")
+        );
+
+        //When
+        exchangeService.exchange(request);
+        var balanceInUSD = accountService.getAccountDetails(accountId).balances().stream().filter(b -> b.currency().equals(Currency.getInstance("USD"))).findFirst();
+
+        //Then
+        assertTrue(balanceInUSD.isPresent());
+    }
+
 }

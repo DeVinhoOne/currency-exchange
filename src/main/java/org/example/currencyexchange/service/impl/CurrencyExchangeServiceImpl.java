@@ -43,7 +43,7 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
 
         var currencyRate = currencyRatesService.fetchRate();
         var currencyExchangeResponse = calculateNewAmount(request, currencyRate);
-        Balance targetBalance = null;
+        Balance targetBalance;
         if (targetBalanceOpt.isEmpty()) {
             targetBalance = new Balance();
             targetBalance.setCurrency(request.to().getCurrency());

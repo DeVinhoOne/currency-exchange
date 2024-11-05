@@ -1,5 +1,6 @@
 package org.example.currencyexchange.rest.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.currencyexchange.model.dto.AccountCreateRequest;
 import org.example.currencyexchange.model.dto.AccountCreateResponse;
@@ -17,7 +18,7 @@ public class AccountController {
     private final AccountService service;
 
     @PostMapping
-    public ResponseEntity<AccountCreateResponse> createAccount(@RequestBody final AccountCreateRequest request) {
+    public ResponseEntity<AccountCreateResponse> createAccount(@Valid @RequestBody final AccountCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.createAccount(request));
     }
 
