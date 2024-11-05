@@ -11,6 +11,7 @@ import org.example.currencyexchange.service.CurrencyExchangeService;
 import org.example.currencyexchange.service.CurrencyRatesService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -26,6 +27,7 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
     private final CurrencyRatesService currencyRatesService;
     private final AccountMapper accountMapper;
 
+    @Transactional
     @Override
     public CurrencyExchangeResponse exchange(final CurrencyExchangeRequest request) {
         var account = accountRepository
