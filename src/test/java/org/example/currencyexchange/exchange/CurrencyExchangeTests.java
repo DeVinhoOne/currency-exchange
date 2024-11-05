@@ -19,12 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class CurrencyExchangeTests {
 
     @Autowired
-    private CurrencyExchangeService service;
+    private CurrencyExchangeService exchangeService;
     @Autowired
     private AccountService accountService;
 
     @Test
-    void shouldConvertPLNtoUSD() {
+    void shouldConvertFromPLNtoUSD() {
         //Given
         createTestAccount();
         var request = new CurrencyExchangeRequest(
@@ -35,17 +35,17 @@ class CurrencyExchangeTests {
         );
 
         //When
-        var response = service.exchange(request);
+        var response = exchangeService.exchange(request);
 
         //Then
-        assertEquals(Currency.getInstance("PLN"), response.from());
-        assertEquals(Currency.getInstance("USD"), response.to());
-        assertNotNull(response.rate());
-        assertNotNull(response.timestamp());
+        assertEquals(Currency.getInstance("PLN"), response.getFrom());
+        assertEquals(Currency.getInstance("USD"), response.getTo());
+        assertNotNull(response.getRate());
+        assertNotNull(response.getTimestamp());
     }
 
     @Test
-    void shouldConvertUSDtoPLN() {
+    void shouldConvertFromUSDtoPLN() {
         //Given
         createTestAccount();
         var requestToUSD = new CurrencyExchangeRequest(
@@ -54,7 +54,7 @@ class CurrencyExchangeTests {
                 new CurrencyRequest("USD"),
                 new BigDecimal("650.99")
         );
-        service.exchange(requestToUSD);
+        exchangeService.exchange(requestToUSD);
 
         var requestToPLN = new CurrencyExchangeRequest(
                 1L,
@@ -64,13 +64,13 @@ class CurrencyExchangeTests {
         );
 
         //When
-        var response = service.exchange(requestToPLN);
+        var response = exchangeService.exchange(requestToPLN);
 
         //Then
-        assertEquals(Currency.getInstance("USD"), response.from());
-        assertEquals(Currency.getInstance("PLN"), response.to());
-        assertNotNull(response.rate());
-        assertNotNull(response.timestamp());
+        assertEquals(Currency.getInstance("USD"), response.getFrom());
+        assertEquals(Currency.getInstance("PLN"), response.getTo());
+        assertNotNull(response.getRate());
+        assertNotNull(response.getTimestamp());
     }
 
     private void createTestAccount() {
@@ -78,4 +78,23 @@ class CurrencyExchangeTests {
         accountService.createAccount(request);
     }
 
+    @Test
+    void shouldSubtractCorrectAmountAfterConversion() {
+        //Given
+        createTestAccount();
+        var request = new CurrencyExchangeRequest(
+                1L,
+                new CurrencyRequest("PLN"),
+                new CurrencyRequest("USD"),
+                new BigDecimal("650.11")
+        );
+
+        //When
+        var response = exchangeService.exchange(request);
+
+        var sourceBalanceData = response.getUpdatedBalances().stream().filter(b -> b.currency().equals(Currency.getInstance("PLN"))).findFirst();
+
+        //Then
+        assertEquals(new BigDecimal("1349.89"), sourceBalanceData.get().amount());
+    }
 }

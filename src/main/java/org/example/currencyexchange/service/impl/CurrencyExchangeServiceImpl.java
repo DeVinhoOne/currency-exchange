@@ -1,6 +1,7 @@
 package org.example.currencyexchange.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.example.currencyexchange.mapper.AccountMapper;
 import org.example.currencyexchange.model.CurrencyRateResponse;
 import org.example.currencyexchange.model.dto.CurrencyExchangeRequest;
 import org.example.currencyexchange.model.dto.CurrencyExchangeResponse;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
 
     private final AccountRepository accountRepository;
     private final CurrencyRatesService currencyRatesService;
+    private final AccountMapper accountMapper;
 
     @Override
     public CurrencyExchangeResponse exchange(final CurrencyExchangeRequest request) {
@@ -37,24 +40,49 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
         var targetBalanceOpt = account.getBalance(request.to().getCurrency());
 
         var currencyRate = currencyRatesService.fetchRate();
-        var targetAmount = calculateNewAmount(request, currencyRate);
+        var currencyExchangeResponse = calculateNewAmount(request, currencyRate);
+        Balance targetBalance = null;
         if (targetBalanceOpt.isEmpty()) {
-            var targetBalance = new Balance();
+            targetBalance = new Balance();
             targetBalance.setCurrency(request.to().getCurrency());
-            targetBalance.setAmount(targetAmount);
+            targetBalance.setAmount(targetBalance.getAmount().add(currencyExchangeResponse.getAmount()));
             account.addBalance(targetBalance);
             sourceBalance.setAmount(sourceBalance.getAmount().subtract(request.amount()));
         } else {
-            var targetBalance = targetBalanceOpt.get();
-            targetBalance.setAmount(targetAmount);
+            targetBalance = targetBalanceOpt.get();
+            targetBalance.setAmount(targetBalance.getAmount().add(currencyExchangeResponse.getAmount()));
             sourceBalance.setAmount(sourceBalance.getAmount().subtract(request.amount()));
         }
         accountRepository.save(account);
-        return new CurrencyExchangeResponse(currencyRate.getBuy(), request.from().getCurrency(), request.to().getCurrency(), targetAmount, LocalDateTime.now());
+        mapCurrencyExchangeResponse(currencyExchangeResponse, sourceBalance, targetBalance);
+        return currencyExchangeResponse;
     }
 
-    private BigDecimal calculateNewAmount(final CurrencyExchangeRequest request, final CurrencyRateResponse currencyRate) {
-        return request.amount().divide(currencyRate.getBuy(), 2, RoundingMode.HALF_DOWN);
+    private void mapCurrencyExchangeResponse(CurrencyExchangeResponse currencyExchangeResponse, final Balance sourceBalance, final Balance targetBalance) {
+        currencyExchangeResponse.setUpdatedBalances(accountMapper.mapBalances(List.of(sourceBalance, targetBalance)));
+        currencyExchangeResponse.setTimestamp(LocalDateTime.now());
+        currencyExchangeResponse.setFrom(sourceBalance.getCurrency());
+        currencyExchangeResponse.setTo(targetBalance.getCurrency());
+    }
+
+    private CurrencyExchangeResponse calculateNewAmount(final CurrencyExchangeRequest request, final CurrencyRateResponse currencyRate) {
+        var currencyExchangeResponse = new CurrencyExchangeResponse();
+        if (request.from().getCurrencyCode().equals("PLN")) {
+            currencyExchangeResponse.setAmount(sellPLN(request.amount(), currencyRate.getBuy()));
+            currencyExchangeResponse.setRate(currencyRate.getBuy());
+        } else {
+            currencyExchangeResponse.setAmount(buyPLN(request.amount(), currencyRate.getSell()));
+            currencyExchangeResponse.setRate(currencyRate.getSell());
+        }
+        return currencyExchangeResponse;
+    }
+
+    private BigDecimal sellPLN(final BigDecimal amount, final BigDecimal rate) {
+        return amount.divide(rate, 2, RoundingMode.HALF_DOWN);
+    }
+
+    private BigDecimal buyPLN(final BigDecimal amount, final BigDecimal rate) {
+        return amount.multiply(rate).setScale(2, RoundingMode.HALF_UP);
     }
 
 }
