@@ -18,10 +18,7 @@ public class Balance {
     private Currency currency;
     private BigDecimal amount = BigDecimal.ZERO;
     @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)  // Foreign key column in the Balance table
+    @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    public void add(final BigDecimal toAdd) {
-        amount.add(toAdd);
-    }
 }
