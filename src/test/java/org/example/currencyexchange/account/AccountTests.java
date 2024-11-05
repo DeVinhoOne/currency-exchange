@@ -46,7 +46,7 @@ class AccountTests {
     }
 
     private AccountCreateResponse createTestAccount() {
-        var request = new AccountCreateRequest("Franciszek", "Kowalski", BigDecimal.valueOf(900));
+        var request = new AccountCreateRequest("Franciszek", "Kowalski", new BigDecimal("900.00"));
         return accountService.createAccount(request);
     }
 

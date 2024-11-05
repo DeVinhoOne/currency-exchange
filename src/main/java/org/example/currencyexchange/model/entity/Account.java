@@ -5,7 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -26,6 +28,12 @@ public class Account {
         }
         balance.setAccount(this);
         balances.add(balance);
+    }
+
+    public Optional<Balance> getBalance(final Currency currency) {
+        return balances.stream()
+                .filter(b -> b.getCurrency().equals(currency))
+                .findFirst();
     }
 
 }

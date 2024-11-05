@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-public class CurrencyRateTests {
+class CurrencyRateTests {
 
     @Autowired
     private CurrencyRatesService service;
@@ -15,7 +15,7 @@ public class CurrencyRateTests {
     @Test
     void shouldFetchUSDRate() {
         //When
-        var response = service.fetchRate("USD");
+        var response = service.fetchRate();
 
         //Then
         Assertions.assertNotNull(response.getBuy());
@@ -23,4 +23,5 @@ public class CurrencyRateTests {
         Assertions.assertNotNull(response.getCurrencyCode());
         Assertions.assertNotNull(response.getDate());
     }
+
 }

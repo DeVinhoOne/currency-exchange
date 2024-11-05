@@ -16,9 +16,9 @@ public class CurrencyRatesServiceImpl implements CurrencyRatesService {
     private final CurrencyRatesMapper mapper;
 
     @Override
-    public CurrencyRateResponse fetchRate(String currencyCode) {
+    public CurrencyRateResponse fetchRate() {
         var body = restClient.get()
-                .uri("/api/exchangerates/rates/c/{currencyCode}/?format=json", currencyCode)
+                .uri("/api/exchangerates/rates/c/usd/?format=json")
                 .retrieve()
                 .body(CurrencyApiResponse.class);
         return mapper.map(body);
