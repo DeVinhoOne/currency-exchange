@@ -34,7 +34,7 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
                 .findById(request.accountId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
         var sourceBalance = account.getBalance(request.from().getCurrency())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account does not have a opened balance in " + request.from()));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account does not have a opened balance in " + request.from().getCurrencyCode()));
         if (sourceBalance.getAmount().compareTo(request.amount()) < 0) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Insufficient funds");
         }

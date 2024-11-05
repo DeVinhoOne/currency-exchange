@@ -15,7 +15,7 @@ import java.util.Currency;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-class CurrencyExchangeTests {
+class CurrencyExchangeServiceTests {
 
     @Autowired
     private CurrencyExchangeService exchangeService;
@@ -56,7 +56,7 @@ class CurrencyExchangeTests {
         exchangeService.exchange(requestToUSD);
 
         var requestToPLN = new CurrencyExchangeRequest(
-                1L,
+                accountId,
                 new CurrencyRequest("USD"),
                 new CurrencyRequest("PLN"),
                 new BigDecimal("101.51")
