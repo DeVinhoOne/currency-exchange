@@ -21,6 +21,8 @@ public class Account {
     private String lastName;
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Balance> balances = new ArrayList<>();
+    @Version
+    private Long version;
 
     public void addBalance(final Balance balance) {
         if (balance == null) {

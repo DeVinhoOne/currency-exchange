@@ -30,6 +30,9 @@ public class CurrencyExchangeServiceImpl implements CurrencyExchangeService {
     @Transactional
     @Override
     public CurrencyExchangeResponse exchange(final CurrencyExchangeRequest request) {
+        if (request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Amount must be greater than zero");
+        }
         var account = accountRepository
                 .findById(request.accountId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));

@@ -5,9 +5,11 @@ import org.example.currencyexchange.model.dto.AccountCreateRequest;
 import org.example.currencyexchange.model.dto.CurrencyExchangeRequest;
 import org.example.currencyexchange.service.AccountService;
 import org.example.currencyexchange.service.CurrencyExchangeService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -92,13 +94,9 @@ class CurrencyExchangeServiceTests {
         assertEquals(new BigDecimal("1349.89"), sourceBalanceData.get().amount());
     }
 
-    private Long createTestAccount() {
-        var request = new AccountCreateRequest("Tomasz", "Nowak", new BigDecimal("2000.00"));
-        return accountService.createAccount(request).id();
-    }
-
     @Test
     void shouldOpenNewUSDBalanceAfterFirstExchange() {
+        //Given
         var accountId = createTestAccount();
         var request = new CurrencyExchangeRequest(
                 accountId,
@@ -115,4 +113,52 @@ class CurrencyExchangeServiceTests {
         assertTrue(balanceInUSD.isPresent());
     }
 
+    @Test
+    void shouldThrowExceptionWhenExchangeRequestExceedsCurrentBalance() {
+        //Given
+        var accountId = createTestAccount();
+        var request = new CurrencyExchangeRequest(
+                accountId,
+                new CurrencyRequest("PLN"),
+                new CurrencyRequest("USD"),
+                new BigDecimal("5050.12")
+        );
+
+        //Then
+        Assertions.assertThrows(ResponseStatusException.class, () -> exchangeService.exchange(request));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenExchangeRequestContainsInvalidAccountId() {
+        //Given
+        var request = new CurrencyExchangeRequest(
+                987L,
+                new CurrencyRequest("PLN"),
+                new CurrencyRequest("USD"),
+                new BigDecimal("100.01")
+        );
+
+        //Then
+        Assertions.assertThrows(ResponseStatusException.class, () -> exchangeService.exchange(request));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAmountLessThanZero() {
+        //Given
+        var accountId = createTestAccount();
+        var request = new CurrencyExchangeRequest(
+                accountId,
+                new CurrencyRequest("PLN"),
+                new CurrencyRequest("USD"),
+                new BigDecimal("-0.01")
+        );
+
+        //Then
+        Assertions.assertThrows(ResponseStatusException.class, () -> exchangeService.exchange(request));
+    }
+
+    private Long createTestAccount() {
+        var request = new AccountCreateRequest("Tomasz", "Nowak", new BigDecimal("2000.00"));
+        return accountService.createAccount(request).id();
+    }
 }
